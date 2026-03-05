@@ -24,11 +24,11 @@ export default class Physics {
             RAPIER.RigidBodyDesc.fixed()
         )
 
-        const collider = RAPIER.ColliderDesc.cuboid(10, 0.1, 10)
+        const collider = RAPIER.ColliderDesc.cuboid(100, 0.1, 100)
         this.world.createCollider(collider, groundBody)
 
         const mesh = new THREE.Mesh(
-            new THREE.BoxGeometry(20, 0.2, 20),
+            new THREE.BoxGeometry(100, 0.2, 100),
             new THREE.MeshStandardMaterial({ color: 'green' })
         )
 

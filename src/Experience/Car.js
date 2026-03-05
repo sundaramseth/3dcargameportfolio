@@ -11,9 +11,9 @@ export default class Car {
 
         // movement
         this.speed = 0
-        this.maxSpeed = 20
-        this.acceleration = 30
-        this.turnSpeed = 2.5
+        this.maxSpeed = 10
+        this.acceleration = 5
+        this.turnSpeed = 0.4
         this.steering = 0
 
         this.keys = {}
@@ -93,6 +93,16 @@ export default class Car {
             "Object_18"
         ]
 
+        const frontWheel = [
+            "Object_14",
+            "Object_16"
+        ]
+
+        frontWheel.forEach(name=>{
+            const frontWheel = this.model.getObjectByName(name)
+            if(frontWheel) this.frontWheels.push(frontWheel)
+        })
+
         wheelNames.forEach(name => {
 
             const wheel = this.model.getObjectByName(name)
@@ -148,7 +158,7 @@ export default class Car {
         if (this.keys['s']) this.speed -= this.acceleration * delta
 
         // friction
-        this.speed *= 0.98
+        this.speed *= 0.99
 
         this.speed = THREE.MathUtils.clamp(
             this.speed,
@@ -174,7 +184,10 @@ export default class Car {
         const euler = new THREE.Euler().setFromQuaternion(quat)
 
         // turn based on speed
-        euler.y += this.steering * this.speed * 0.02
+       if (Math.abs(this.speed) > 0.1) {
+            const direction = this.speed > 0 ? 1 : -1
+            euler.y += this.steering * direction * 0.04
+        }
 
         const newQuat = new THREE.Quaternion().setFromEuler(euler)
 
@@ -233,13 +246,13 @@ export default class Car {
         // rolling
         this.wheels.forEach(wheel => {
 
-            wheel.rotation.x -= this.speed * 0.03
+            wheel.rotation.y -= this.speed * 0.03
         })
 
         // front steering
         this.frontWheels.forEach(wheel => {
 
-            wheel.rotation.y = this.steering * 0.5
+            wheel.rotation.x = this.steering * 0.5
         })
     }
 

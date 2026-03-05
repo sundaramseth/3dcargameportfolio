@@ -4,12 +4,21 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Physics from './Physics'
 import Car from './Car'
 import CameraController from './CameraController'
+import Stats from "stats.js"
 
 export default class World {
 
     constructor(canvas) {
 
         this.canvas = canvas
+        this.stats = new Stats()
+
+        this.stats.showPanel(0) // 0 = FPS
+        document.body.appendChild(this.stats.dom)
+
+        this.stats.dom.style.position = "absolute"
+        this.stats.dom.style.top = "0px"
+        this.stats.dom.style.left = "0px"
 
         this.scene = new THREE.Scene()
         this.scene.background = new THREE.Color(0xa0d8f0)
@@ -46,7 +55,7 @@ export default class World {
         this.scene.add(ambient)
 
         // DEBUG AXIS
-        this.scene.add(new THREE.AxesHelper(5))
+      //  this.scene.add(new THREE.AxesHelper(5))
 
         // PHYSICS
         this.physics = new Physics(this.scene)
@@ -86,6 +95,9 @@ export default class World {
 
     animate = () => {
 
+        //this.stats.begin()
+        this.stats.begin()
+
         requestAnimationFrame(this.animate)
 
         if (this.physics)
@@ -107,5 +119,7 @@ export default class World {
         }
 
         this.renderer.render(this.scene, this.camera)
+
+        this.stats.end()
     }
 }

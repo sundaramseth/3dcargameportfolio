@@ -41,6 +41,9 @@ export default class World {
 
         this.renderer.setSize(window.innerWidth, window.innerHeight)
         this.renderer.setPixelRatio(window.devicePixelRatio)
+        this.renderer.shadowMap.enabled = true
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    
 
         // CONTROLS (for orbit mode)
         this.controls = new OrbitControls(this.camera, canvas)
@@ -51,11 +54,22 @@ export default class World {
         light.position.set(5, 10, 5)
         this.scene.add(light)
 
-        const ambient = new THREE.AmbientLight(0xffffff, 1)
+        const ambient = new THREE.AmbientLight(0xffffff, 0.4)
         this.scene.add(ambient)
 
+        this.scene.background = new THREE.Color(0x87CEEB)
         // DEBUG AXIS
       //  this.scene.add(new THREE.AxesHelper(5))
+
+       const sunLight = new THREE.DirectionalLight(0xffffff, 1.2)
+       sunLight.position.set(50, 50, 25)
+       sunLight.shadow.mapSize.width = 2048
+       sunLight.shadow.mapSize.height = 2048
+       sunLight.castShadow = true
+       this.scene.add(sunLight)
+
+        //this.ground.receiveShadow = true
+       // this.sunLight.castShadow = true
 
         // PHYSICS
         this.physics = new Physics(this.scene)
@@ -65,6 +79,9 @@ export default class World {
             console.log("Physics Ready ✅")
 
             this.car = new Car(this.scene, this.physics)
+
+           // this.car.castShadow = true
+       
 
             this.cameraController = new CameraController(
                 this.camera,

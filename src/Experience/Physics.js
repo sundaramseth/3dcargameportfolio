@@ -60,25 +60,29 @@ export default class Physics {
 
 
         this.scene.add(road)
-for (let i = -80; i < 80; i += 10) {
+        
+        for (let i = -80; i < 80; i += 10) {
 
-  this.createTree(-6, i)
-  this.createTree(6, i)
+        this.createTree(-6, i)
+        this.createTree(6, i)
 
-}
+        }
 
 
-const groundGeometry = new THREE.PlaneGeometry(500, 500)
+            const groundGeometry = new THREE.PlaneGeometry(500, 500)
 
-const groundMaterial = new THREE.MeshStandardMaterial({
-  color: 0x3a9d23
-})
+            const groundMaterial = new THREE.MeshStandardMaterial({
+            color: 0x3a9d23
+            })
 
-const ground = new THREE.Mesh(groundGeometry, groundMaterial)
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial)
 
-ground.rotation.x = -Math.PI / 2
+            ground.rotation.x = -Math.PI / 2
 
-this.scene.add(ground)
+            ground.receiveShadow = true
+
+
+            this.scene.add(ground)
         
 
        // this.scene.add(mesh)

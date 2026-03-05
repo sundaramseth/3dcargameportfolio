@@ -65,6 +65,15 @@ export default class Car {
             this.model.position.sub(center)
             this.model.position.y = 0
 
+        
+                 this.model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = true
+                        child.receiveShadow = true
+                    }
+                })
+                
+
             this.scene.add(this.model)
 
             this.detectWheels()

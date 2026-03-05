@@ -167,8 +167,8 @@ export default class Car {
         )
 
         // steering input
-        if (this.keys['a']) this.steering = this.turnSpeed
-        else if (this.keys['d']) this.steering = -this.turnSpeed
+        if (this.keys['a']) this.steering = -this.turnSpeed
+        else if (this.keys['d']) this.steering = this.turnSpeed
         else this.steering = 0
 
         // current rotation

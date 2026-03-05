@@ -24,7 +24,7 @@ export default class Physics {
             RAPIER.RigidBodyDesc.fixed()
         )
 
-        const collider = RAPIER.ColliderDesc.cuboid(100, 0.1, 100)
+        const collider = RAPIER.ColliderDesc.cuboid(500, 0.1, 500)
         this.world.createCollider(collider, groundBody)
 
         // const mesh = new THREE.Mesh(

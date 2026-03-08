@@ -1,129 +1,222 @@
-import RAPIER from '@dimforge/rapier3d-compat'
-import * as THREE from 'three'
+import RAPIER from "@dimforge/rapier3d-compat";
+import * as THREE from "three";
 
 export default class Physics {
+  constructor(scene) {
+    this.scene = scene;
+    this.ready = this.init();
 
-    constructor(scene) {
+    this.dummy = new THREE.Object3D();
+  }
 
-        this.scene = scene
-        this.ready = this.init()
+  async init() {
+    await RAPIER.init();
+
+    this.world = new RAPIER.World({
+      x: 0,
+      y: -9.81,
+      z: 0,
+    });
+
+    /* PHYSICS GROUND */
+
+    const groundBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+
+    const collider = RAPIER.ColliderDesc.cuboid(500, 0.1, 500);
+    this.world.createCollider(collider, groundBody);
+
+    /* VISUAL GROUND */
+
+    const groundGeometry = new THREE.PlaneGeometry(500, 500);
+    const groundMaterial = new THREE.MeshStandardMaterial({
+      color: 0x3a9d23,
+    });
+
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+
+    this.scene.add(ground);
+
+    /* ROAD */
+
+    const roadGeometry = new THREE.PlaneGeometry(20, 500);
+
+    const roadMaterial = new THREE.MeshStandardMaterial({
+      color: 0x333333,
+    });
+
+    const road = new THREE.Mesh(roadGeometry, roadMaterial);
+    road.rotation.x = -Math.PI / 2;
+    road.position.y = 0.01;
+
+    this.scene.add(road);
+
+    /* ROAD LINE */
+
+    const lineGeometry = new THREE.PlaneGeometry(0.5, 500);
+
+    const lineMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+    });
+
+    const line = new THREE.Mesh(lineGeometry, lineMaterial);
+    line.rotation.x = -Math.PI / 2;
+    line.position.y = 0.02;
+
+    this.scene.add(line);
+
+    /* ENVIRONMENT */
+
+    this.initTrees(100);
+    this.createGrass(4000);
+    this.createBuildings(100);
+  }
+
+  /* TREE SYSTEM */
+
+  initTrees(count) {
+    const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.3, 2);
+    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+
+    const leavesGeometry = new THREE.SphereGeometry(1.4);
+    const leavesMaterial = new THREE.MeshStandardMaterial({ color: 0x228b22 });
+
+    this.trunkMesh = new THREE.InstancedMesh(
+      trunkGeometry,
+      trunkMaterial,
+      count,
+    );
+    this.leavesMesh = new THREE.InstancedMesh(
+      leavesGeometry,
+      leavesMaterial,
+      count,
+    );
+
+    this.trunkMesh.frustumCulled = true;
+    this.leavesMesh.frustumCulled = true;
+
+    this.scene.add(this.trunkMesh);
+    this.scene.add(this.leavesMesh);
+
+    this.treeIndex = 0;
+
+    for (let i = 0; i < count; i++) {
+      const pos = this.getSpawnPosition(12);
+      this.createTree(pos.x, pos.z);
     }
 
-    async init() {
+    this.trunkMesh.instanceMatrix.needsUpdate = true;
+    this.leavesMesh.instanceMatrix.needsUpdate = true;
+  }
 
-        await RAPIER.init()
+  createTree(x, z) {
+    const dummy = this.dummy;
 
-        this.world = new RAPIER.World({
-            x: 0,
-            y: -9.81,
-            z: 0
-        })
+    const scale = 0.8 + Math.random() * 0.6;
 
-        // Ground
-        const groundBody = this.world.createRigidBody(
-            RAPIER.RigidBodyDesc.fixed()
-        )
+    dummy.position.set(x, 1, z);
+    dummy.rotation.y = Math.random() * Math.PI;
+    dummy.scale.set(scale, scale, scale);
 
-        const collider = RAPIER.ColliderDesc.cuboid(500, 0.1, 500)
-        this.world.createCollider(collider, groundBody)
+    dummy.updateMatrix();
+    this.trunkMesh.setMatrixAt(this.treeIndex, dummy.matrix);
 
-        // const mesh = new THREE.Mesh(
-        //     new THREE.BoxGeometry(100, 0.2, 100),
-        //     new THREE.MeshStandardMaterial({ color: 'green' })
-        // )
+    dummy.position.set(x, 3 * scale, z);
+    dummy.updateMatrix();
 
+    this.leavesMesh.setMatrixAt(this.treeIndex, dummy.matrix);
 
+    this.treeIndex++;
+  }
 
-        const roadGeometry = new THREE.PlaneGeometry(20, 200)
+  /* GRASS SYSTEM */
 
-        const roadMaterial = new THREE.MeshStandardMaterial({
-        color: 0x333333
-        })
+  createGrass(count) {
+    const grassGeometry = new THREE.PlaneGeometry(0.1, 0.6);
 
-        const road = new THREE.Mesh(roadGeometry, roadMaterial)
+    const grassMaterial = new THREE.MeshStandardMaterial({
+      color: 0x3cb043,
+      side: THREE.DoubleSide,
+    });
 
-        road.rotation.x = -Math.PI / 2
-        road.position.y = 0.01
+    const grass = new THREE.InstancedMesh(grassGeometry, grassMaterial, count);
 
-        const lineGeometry = new THREE.PlaneGeometry(0.5, 200)
+    const dummy = new THREE.Object3D();
 
-        const lineMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffffff
-        })
+    for (let i = 0; i < count; i++) {
+      const pos = this.getSpawnPosition(10);
 
-        const line = new THREE.Mesh(lineGeometry, lineMaterial)
+      dummy.position.set(pos.x, 0.3, pos.z);
 
-        line.rotation.x = -Math.PI / 2
-        line.position.y = 0.02
-        
-        this.scene.add(line)
+      dummy.rotation.y = Math.random() * Math.PI;
 
+      const scale = Math.random() * 1.5 + 0.5;
+      dummy.scale.set(scale, scale, scale);
 
-        this.scene.add(road)
-        
-        for (let i = -100; i < 100; i += 10) {
+      dummy.updateMatrix();
 
-        this.createTree(-12, i)
-        this.createTree(12, i)
-        this.createTree(24, i)
-        this.createTree(-24, i)
-        this.createTree(36, i)
-        this.createTree(-36, i)
-
-        }
-
-
-            const groundGeometry = new THREE.PlaneGeometry(500, 500)
-
-            const groundMaterial = new THREE.MeshStandardMaterial({
-            color: 0x3a9d23
-            })
-
-            const ground = new THREE.Mesh(groundGeometry, groundMaterial)
-
-            ground.rotation.x = -Math.PI / 2
-
-            ground.receiveShadow = true
-
-
-            this.scene.add(ground)
-        
-
-       // this.scene.add(mesh)
+      grass.setMatrixAt(i, dummy.matrix);
     }
 
-    update() {
-        if (this.world)
-            this.world.step()
+    grass.instanceMatrix.needsUpdate = true;
 
-        
+    this.scene.add(grass);
+  }
+
+  /* BUILDING SYSTEM */
+
+  createBuildings(count) {
+
+    const textureLoader = new THREE.TextureLoader()
+
+    const buildingTexture = textureLoader.load('./textures/building.jpg')
+
+    buildingTexture.wrapS = THREE.RepeatWrapping
+    buildingTexture.wrapT = THREE.RepeatWrapping
+    buildingTexture.repeat.set(3, 6)
+
+
+    const material = new THREE.MeshStandardMaterial({
+    map: buildingTexture,
+     roughness: 0.8,
+     metalness: 0.1
+    });
+
+    for (let i = 0; i < count; i++) {
+      const pos = this.getSpawnPosition(20);
+
+      const height = Math.random() * 20 + 10;
+
+      const geometry = new THREE.BoxGeometry(4, height, 4);
+
+      const building = new THREE.Mesh(geometry, material);
+
+      building.position.set(pos.x, height / 2, pos.z);
+
+      building.castShadow = true;
+      building.receiveShadow = true;
+
+      this.scene.add(building);
     }
+  }
 
-createTree(x, z) {
+  /* SPAWN POSITION */
 
-  const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.3, 2)
-  const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 })
+  getSpawnPosition(minDistanceFromRoad = 10) {
+    let x, z;
 
-  const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial)
+    do {
+      x = (Math.random() - 0.5) * 200;
+      z = (Math.random() - 0.5) * 200;
+    } while (Math.abs(x) < minDistanceFromRoad);
 
-  const leavesGeometry = new THREE.SphereGeometry(1.4)
-  const leavesMaterial = new THREE.MeshStandardMaterial({ color: 0x228b22 })
+    return { x, z };
+  }
 
-  const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial)
+  /* PHYSICS UPDATE */
 
-  leaves.position.y = 2
-
-  const tree = new THREE.Group()
-  tree.add(trunk)
-  tree.add(leaves)
-
-  tree.position.set(x, 1, z)
-
-  this.scene.add(tree)
-  
-}
-
-
-    
-
+  update() {
+    if (this.world) this.world.step();
+  }
 }

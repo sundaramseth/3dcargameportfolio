@@ -10,6 +10,9 @@ export default class World {
 
     constructor(canvas) {
 
+        this.mouse = new THREE.Vector2()
+        this.raycaster = new THREE.Raycaster()
+
         this.canvas = canvas
         this.stats = new Stats()
 
@@ -32,6 +35,7 @@ export default class World {
         )
 
         this.camera.position.set(0, 4, 10)
+        
 
         // RENDERER
         this.renderer = new THREE.WebGLRenderer({
@@ -40,7 +44,7 @@ export default class World {
         })
 
         this.renderer.setSize(window.innerWidth, window.innerHeight)
-        this.renderer.setPixelRatio(window.devicePixelRatio)
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
         this.renderer.shadowMap.enabled = true
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
     
@@ -49,16 +53,26 @@ export default class World {
         this.controls = new OrbitControls(this.camera, canvas)
         // this.controls.target.set(0, 0, 0);
         
-        this.controls.enabled = true
+       // this.controls.target = this.car.position
+        this.controls.enablePan = true
+        this.controls.enableZoom = true
+        this.controls.enableRotate = true
+        this.controls.minDistance = 5
+        this.controls.maxDistance = 15
+        this.controls.maxPolarAngle = Math.PI / 2.2
         //this.controls.update();
 
         // LIGHTS
+
+        
+        const ambient = new THREE.AmbientLight(0xffffff, 0.6)
+        this.scene.add(ambient)
+        
         const light = new THREE.DirectionalLight(0xffffff, 2)
         light.position.set(5, 10, 5)
+        light.castShadow = true
         this.scene.add(light)
 
-        const ambient = new THREE.AmbientLight(0xffffff, 0.4)
-        this.scene.add(ambient)
 
         this.scene.background = new THREE.Color(0x87CEEB)
         // DEBUG AXIS
@@ -84,13 +98,34 @@ export default class World {
             this.car = new Car(this.scene, this.physics)
 
            // this.car.castShadow = true
-       
 
+           if(this.car){
+             this.controls.target.copy(this.car.mesh.position)
+           }
+       
             this.cameraController = new CameraController(
                 this.camera,
                 this.car,
                 this.controls
             )
+
+        })
+
+
+        //Raycasting for mouse clicks
+
+        window.addEventListener("click", (event) => {
+
+        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+        this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+
+        this.raycaster.setFromCamera(this.mouse, this.camera)
+
+        const intersects = this.raycaster.intersectObjects(this.scene.children)
+
+        if(intersects.length > 0){
+            console.log("Clicked:", intersects[0].object)
+        }
 
         })
 
@@ -112,34 +147,44 @@ export default class World {
             window.innerHeight
         )
     }
+animate = () => {
 
-    animate = () => {
+    this.stats.begin()
 
-        //this.stats.begin()
-        this.stats.begin()
+    requestAnimationFrame(this.animate)
 
-        requestAnimationFrame(this.animate)
+    if (this.physics)
+        this.physics.update()
 
-        if (this.physics)
-            this.physics.update()
+    if (this.car)
+        this.car.update()
 
-        if (this.car)
-            this.car.update()
+if (this.car && this.car.body) {
 
-        if (
-            this.car &&
-            this.cameraController &&
-            this.car.body
-        ) {
+    const pos = this.car.body.translation()
 
-            const pos = this.car.body.translation()
-            const quat = this.car.body.rotation()
+    this.controls.target.set(
+        pos.x,
+        pos.y,
+        pos.z
+    )
 
-            this.cameraController.update(pos, quat)
-        }
+    this.controls.update()
+}
+    if (
+        this.car &&
+        this.cameraController &&
+        this.car.body
+    ) {
 
-        this.renderer.render(this.scene, this.camera)
+        const pos = this.car.body.translation()
+        const quat = this.car.body.rotation()
 
-        this.stats.end()
+        this.cameraController.update(pos, quat)
     }
+
+    this.renderer.render(this.scene, this.camera)
+
+    this.stats.end()
+}
 }

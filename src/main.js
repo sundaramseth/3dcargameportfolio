@@ -13,3 +13,4 @@ stats.dom.style.position = "absolute"
 stats.dom.style.top = "0px"
 stats.dom.style.left = "0px"
 new World(canvas)
+

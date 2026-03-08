@@ -61,10 +61,14 @@ export default class Physics {
 
         this.scene.add(road)
         
-        for (let i = -80; i < 80; i += 10) {
+        for (let i = -100; i < 100; i += 10) {
 
-        this.createTree(-6, i)
-        this.createTree(6, i)
+        this.createTree(-12, i)
+        this.createTree(12, i)
+        this.createTree(24, i)
+        this.createTree(-24, i)
+        this.createTree(36, i)
+        this.createTree(-36, i)
 
         }
 
@@ -102,7 +106,7 @@ createTree(x, z) {
 
   const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial)
 
-  const leavesGeometry = new THREE.SphereGeometry(1.2)
+  const leavesGeometry = new THREE.SphereGeometry(1.4)
   const leavesMaterial = new THREE.MeshStandardMaterial({ color: 0x228b22 })
 
   const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial)

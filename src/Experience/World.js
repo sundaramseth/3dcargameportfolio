@@ -47,7 +47,10 @@ export default class World {
 
         // CONTROLS (for orbit mode)
         this.controls = new OrbitControls(this.camera, canvas)
-        this.controls.enabled = false
+        // this.controls.target.set(0, 0, 0);
+        
+        this.controls.enabled = true
+        //this.controls.update();
 
         // LIGHTS
         const light = new THREE.DirectionalLight(0xffffff, 2)
@@ -76,7 +79,7 @@ export default class World {
 
         this.physics.ready.then(() => {
 
-            console.log("Physics Ready ✅")
+            console.log("Physics Ready")
 
             this.car = new Car(this.scene, this.physics)
 

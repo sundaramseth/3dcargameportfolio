@@ -117,16 +117,11 @@ export default class Car {
             const wheel = this.model.getObjectByName(name)
 
             if (wheel) {
-
                 this.wheels.push(wheel)
-
-                // assume first two are front
-                if (this.frontWheels.length < 2)
-                    this.frontWheels.push(wheel)
-
                 console.log("Wheel found:", name)
             }
         })
+
     }
 
     // =============================
@@ -255,14 +250,24 @@ export default class Car {
         // rolling
         this.wheels.forEach(wheel => {
 
-            wheel.rotation.y -= this.speed * 0.03
+            wheel.rotation.y -= this.speed * 0.05
         })
 
-        // front steering
-        this.frontWheels.forEach(wheel => {
+            // steering
+    this.frontWheels.forEach((wheel, index) => {
 
-            wheel.rotation.x = this.steering * 0.5
-        })
+        if (index === 0)
+            wheel.rotation.x = this.steering
+        else
+            wheel.rotation.x = -this.steering
+
+    })
+
+        // // front steering
+        // this.frontWheels.forEach(wheel => {
+
+        //     wheel.rotation.x = -this.steering * 0.5
+        // })
     }
 
 }
